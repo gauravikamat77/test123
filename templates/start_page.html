@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Selection</title>
+</head>
+<body>
+    <h1>Image Selection</h1>
+    <form id="imageForm" action="/select_image" method="post" enctype="multipart/form-data">
+        <input type="file" name="image_file" id="imageFileInput">
+        <button type="submit">Select Image</button>
+    </form>
+    <div id="selectedImageContainer"></div>
+    <button onclick="goToNextPage()">Next</button>
+
+    <script>
+        function goToNextPage() {
+            window.location.href = '/page_one'; // Change the URL to the next page URL
+        }
+
+        document.getElementById('imageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log("Form submitted");
+            var formData = new FormData(this);
+            var file = formData.get('image_file');
+            console.log("File:", file);
+            fetch('/select_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response:", data);
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    var imageUrl = '/static/uploads/' + data.filename;
+                    var imgElement = document.createElement('img');
+                    imgElement.src = imageUrl;
+                    imgElement.style.maxWidth = '400px';
+                    imgElement.style.maxHeight = '300px';
+                    var container = document.getElementById('selectedImageContainer');
+                    container.innerHTML = '';
+                    container.appendChild(imgElement);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+        
+    </script>
+</body>
+</html>
