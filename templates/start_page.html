@@ -7,14 +7,17 @@
 </head>
 <body>
     <h1>Image Selection</h1>
-    <form id="imageForm" action="/select_image" method="post" enctype="multipart/form-data">
+    <form id="imageForm" action="/select_and_process_image" method="post" enctype="multipart/form-data">
         <input type="file" name="image_file" id="imageFileInput">
         <button type="submit">Select Image</button>
     </form>
     <div id="selectedImageContainer"></div>
-    <button onclick="goToNextPage()">Next</button>
+    <button id="nextButton">Next</button>
 
     <script>
+        // Define a global variable to store the response data
+        var responseData;
+
         function goToNextPage() {
             window.location.href = '/page_one'; // Change the URL to the next page URL
         }
@@ -25,13 +28,14 @@
             var formData = new FormData(this);
             var file = formData.get('image_file');
             console.log("File:", file);
-            fetch('/select_image', {
+            fetch('/select_and_process_image', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 console.log("Response:", data);
+                responseData = data; // Store the response data in the global variable
                 if (data.error) {
                     alert(data.error);
                 } else {
@@ -49,7 +53,16 @@
                 console.error('Error:', error);
             });
         });
-        
+
+        // Add click event listener to the next button
+        document.getElementById('nextButton').addEventListener('click', function() {
+            // Redirect to the next page with the filename as a query parameter
+            if (responseData && responseData.filename) {
+                window.location.href = '/page_one?filename=' + encodeURIComponent(responseData.filename);
+            } else {
+                alert('No image selected');
+            }
+        });
     </script>
 </body>
 </html>
