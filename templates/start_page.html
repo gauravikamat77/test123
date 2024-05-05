@@ -17,17 +17,15 @@
     <script>
         // Define a global variable to store the response data
         var responseData;
-
-        function goToNextPage() {
-            window.location.href = '/page_one'; // Change the URL to the next page URL
-        }
-
+        var name;
         document.getElementById('imageForm').addEventListener('submit', function(event) {
             event.preventDefault();
             console.log("Form submitted");
             var formData = new FormData(this);
             var file = formData.get('image_file');
-            console.log("File:", file);
+            var filename = file.name; // Accessing the filename
+            console.log("Filename:", filename); // Log the filename
+            name = filename;
             fetch('/select_and_process_image', {
                 method: 'POST',
                 body: formData
@@ -39,7 +37,7 @@
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    var imageUrl = '/static/uploads/' + data.filename;
+                    var imageUrl = '/static/uploads/' + filename;
                     var imgElement = document.createElement('img');
                     imgElement.src = imageUrl;
                     imgElement.style.maxWidth = '400px';
@@ -57,11 +55,7 @@
         // Add click event listener to the next button
         document.getElementById('nextButton').addEventListener('click', function() {
             // Redirect to the next page with the filename as a query parameter
-            if (responseData && responseData.filename) {
-                window.location.href = '/page_one?filename=' + encodeURIComponent(responseData.filename);
-            } else {
-                alert('No image selected');
-            }
+                window.location.href = '/page_one?filename=' + encodeURIComponent(filename);
         });
     </script>
 </body>

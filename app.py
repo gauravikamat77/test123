@@ -33,16 +33,6 @@ def index():
 
 @app.route('/select_and_process_image', methods=['POST'])
 def select_and_process_image():
-    if 'image_file' not in request.files:
-        return jsonify({'error': 'No file part'})
-    file = request.files['image_file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'})
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        return jsonify({'success': 'Image selected successfully!', 'filename': filename})
     try:
         if 'image_file' not in request.files:
             return jsonify({'error': 'No file part'})
@@ -53,10 +43,11 @@ def select_and_process_image():
         
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            input_filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
             
             # Load the selected image
-            img = cv2.imread(input_filepath)
+            img = cv2.imread(filepath)
             if img is None:
                 return jsonify({'error': 'Failed to load image'})
             
@@ -65,41 +56,41 @@ def select_and_process_image():
             # Convert to Grayscale
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-         # Gaussian Blur
+            # Gaussian Blur
             img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
 
-    # Canny Edge Detection
+            # Canny Edge Detection
             img_edge = cv2.Canny(img_gray, 100, 200)
 
-    # Dilate Edges
+            # Dilate Edges
             kernel_dilate = np.ones((1, 1), np.uint8)
             thick = cv2.dilate(img_edge, kernel_dilate, iterations=1)
 
-    # Sharpening
+            # Sharpening
             kernel_sharpen = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
             sharpened = cv2.filter2D(thick, -1, kernel_sharpen)
 
-    # Thresholding
+            # Thresholding
             threshold_value = 120
             _, binary_inverse = cv2.threshold(sharpened, threshold_value, 255, cv2.THRESH_BINARY_INV)
             binary_inverse_pil = Image.fromarray(binary_inverse)
 
-    # Resize the processed image to match the dimensions of the selected image
+            # Resize the processed image to match the dimensions of the selected image
             binary_inverse_pil = binary_inverse_pil.resize((width, height))
-  
+
+            # Convert processed image to PIL format
+            pil_img = binary_inverse_pil
+            
             # Save the processed image
             processed_filename = f"processed_{filename}"
             processed_filepath = os.path.join(app.config['PROCESSED_FOLDER'], processed_filename)
             pil_img.save(processed_filepath)
             
-            # Convert processed image to PIL format
-            pil_img = Image.fromarray(binary_inverse_pil)
-            
             # Convert PIL image to base64
             buffered = io.BytesIO()
             pil_img.save(buffered, format="JPEG")
             processed_image_data = base64.b64encode(buffered.getvalue()).decode('utf-8')
-    
+
             # Modify the return statement to include the processed image filename
             return jsonify({'success': 'Image processed successfully!', 'data': {'processed_image_data': processed_image_data, 'processed_filename': processed_filename}})
         
@@ -109,6 +100,7 @@ def select_and_process_image():
 
     return jsonify({'error': 'Invalid file format'})
 
+   
 @app.route('/page_one')
 def page_one():
     # Add logic for Page One
