@@ -158,7 +158,8 @@
                     <label for="brush8">Eraser</label>
                 </div>
             </div>
-            <button id="applybutton" type="submit">Apply</button>
+            
+        <button id="applybutton" onclick="applyBrush()">Apply</button> 
         </form>
     </div>
 
@@ -198,7 +199,7 @@
             processedImgElement.onload = function() {
                 ctx.drawImage(processedImgElement, 0, 0, canvas.width, canvas.height); // Draw the image onto the canvas
             };
-
+            
             // Get the slider and its value display element
             var slider = document.getElementById('brushSizeSlider');
             var valueDisplay = document.getElementById('brushSizeValue');
@@ -208,6 +209,90 @@
                 valueDisplay.textContent = this.value;
             });
         };
+
+
+        function applyBrush() {
+            var canvasData = {}; // Create an empty object to store canvas data
+    
+            // Get the selected brush option
+            var selectedBrush = document.querySelector('input[name="brush"]:checked').value;
+            canvasData.brush = selectedBrush; // Add the selected brush to the canvas data
+    
+            // Send a POST request to the server with the canvas data
+            fetch('/process_with_brush', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(canvasData) // Convert canvas data to JSON string
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('brush applied successfully!');
+                    // Handle success if needed
+                } else {
+                    console.error('Failed to apply round brush');
+                    // Handle error if needed
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Send canvas data to the server
+        function sendDataToServer() {
+            var canvasData = canvas.toDataURL(); // Convert canvas data to base64
+            fetch('/receive_canvas_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ canvasData: canvasData }) // Send canvas data to the server
+            }).then(response => {
+                console.log('Canvas data sent successfully');
+            }).catch(error => {
+                console.error('Error sending canvas data:', error);
+            });
+        }
+
+        function updateCanvas() {
+            try {
+                const canvasData = {}; // Assuming you have canvas data here
+        
+                // Set up the request data
+                const requestData = {
+                    canvasData: canvasData
+                };
+        
+                // Set the request headers
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+        
+                // Make the POST request to the server
+                fetch('http://localhost:5000/process_with_brush', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to fetch');
+                    }
+                })
+                .then(data => {
+                    console.log('Response:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
     </script>
 </body>
 </html>

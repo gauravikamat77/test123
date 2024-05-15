@@ -6,8 +6,14 @@ from PIL import Image
 import numpy as np
 import base64
 import io
+import tkinter as tk
+from PIL import ImageTk, Image
+import base64
+import requests
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 # Define the upload and processed image directories
 UPLOAD_FOLDER = 'static/uploads'
@@ -23,9 +29,23 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['PROCESSED_FOLDER'] = PROCESSED_FOLDER
 
+root = tk.Tk()
+canvas = tk.Canvas(root, width=500, height=400)
+canvas.pack()
+
+brush_colour = "black"
+
 # Function to check if file extension is allowed
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def draw_brush(event, brush_width, brush_type2):
+    x1 = event.x - 1
+    y1 = event.y - 1
+    x2 = event.x + 1
+    y2 = event.y + 1
+    canvas.create_line(x1, y1, x2, y2, fill=brush_colour, width=brush_width, capstyle=brush_type2, smooth=True)
+
 
 @app.route('/')
 def index():
@@ -77,9 +97,35 @@ def select_and_process_image():
 
             # Resize the processed image to match the dimensions of the selected image
             binary_inverse_pil = binary_inverse_pil.resize((500, 400))
+            binary_inverse_np = np.array(binary_inverse_pil)
+            
+            # Define the canvas dimensions
+            canvas_width = 500
+            canvas_height = 400
 
-            # Convert processed image to PIL format
-            pil_img = binary_inverse_pil
+            # Define the number of rows and columns for your grid
+            n_rows = 3
+            n_cols = 3
+
+            # Calculate cell width and cell height
+            cell_width = canvas_width // n_cols
+            cell_height = canvas_height // n_rows
+            
+            if canvas_width % n_cols != 0:
+                cell_width += 1
+            if canvas_height % n_rows != 0:
+                cell_height += 1
+            # Draw grid lines on the image
+            for i in range(1, n_rows):
+                cv2.line(binary_inverse_np, (0, i * cell_height), (canvas_width, i * cell_height), (0, 0, 255), 1)
+            for j in range(1, n_cols):
+                cv2.line(binary_inverse_np, (j * cell_width, 0), (j * cell_width, canvas_height), (0, 0, 255), 1)
+
+
+            # Convert the numpy array back to a PIL image
+            binary_inverse_pil_with_grid = Image.fromarray(binary_inverse_np)
+            
+            pil_img = binary_inverse_pil_with_grid
             
             # Save the processed image
             processed_filename = f"processed_{filename}"
@@ -106,40 +152,105 @@ def page_one():
     # Add logic for Page One
     return render_template('page_one.html')
 
+# Flask route to process images with the selected brush
 @app.route('/process_with_brush', methods=['POST'])
-def process_with_brush():
+def process_with_brush(self):
+    try:
         # Get the selected brush option from the request
         brush_option = request.form.get('brush')
-
         # Apply the selected brush option
         if brush_option == 'round_brush':
-            # Apply round brush logic
-            pass
-        elif brush_option == 'slash_brush':
-            # Apply slash brush logic
-            pass
-        elif brush_option == 'ubrush':
-            # Apply up fan brush logic
-            pass
-        elif brush_option == 'dbrush':
-            # Apply down fan brush logic
-            pass
-        elif brush_option == 'lbrush':
-            # Apply left fan brush logic
-            pass
-        elif brush_option == 'rbrush':
-            # Apply right fan brush logic
-            pass
-        elif brush_option == 'sbrush':
-            # Apply smudge brush logic
-            pass
-        elif brush_option == 'eraser':
-            # Apply eraser logic
-            pass
+            draw_brush(self)
+        # Implement logic for other brush options as needed
         else:
             # Handle invalid brush option
-            pass
-        return jsonify({'error': 'Invalid file format'})
+            return jsonify({'error': 'Invalid brush option'})
+    
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({'error': 'An error occurred during image processing'})
+
+        
+        # elif brush_option == 'slash_brush':
+        #     # Apply slash brush logic
+        #     pass
+        # elif brush_option == 'ubrush':
+        #     # Apply up fan brush logic
+        #     pass
+        # elif brush_option == 'dbrush':
+        #     # Apply down fan brush logic
+        #     pass
+        # elif brush_option == 'lbrush':
+        #     # Apply left fan brush logic
+        #     pass
+        # elif brush_option == 'rbrush':
+        #     # Apply right fan brush logic
+        #     pass
+        # elif brush_option == 'sbrush':
+        #     # Apply smudge brush logic
+        #     pass
+        # elif brush_option == 'eraser':
+        #     # Apply eraser logic
+        #     pass
+        # else:
+        #     # Handle invalid brush option
+        #     pass
+        # return jsonify({'error': 'Invalid file format'})
+
+
+@app.route('/receive_canvas_data', methods=['POST'])
+def receive_canvas_data():
+    # Get canvas data from the client request
+    canvas_data = request.json.get('canvasData')
+    
+    # Return the canvas data along with the success status
+    return jsonify({'status': 'success', 'canvasData': canvas_data})
+
+
+@socketio.on('update_canvas')
+def update_canvas(self):
+    try:
+        data = {'canvasData': 'your_canvas_data_here'}
+
+       # Set the content type header to JSON
+        headers = {'Content-Type': 'application/json'}
+
+# Make the POST request with JSON data and headers
+        response = requests.post('http://localhost:5000/process_with_brush', json=data, headers=headers)
+
+# Check the response status
+        if response.status_code == 200:
+          print("Request successful")
+          print(response.json())
+        else:
+          print("Error:", response.status_code)
+        # Get canvas data from the server
+        response = requests.post('http://localhost:5000/receive_canvas_data')
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            data = response.json()
+
+            # Decode base64 canvas data to an image
+            canvas_data = base64.b64decode(data.get('canvasData', ''))
+            img = Image.open(io.BytesIO(canvas_data))
+            photo = ImageTk.PhotoImage(img)
+
+            # Update Tkinter canvas with the received image
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+            self.photo = photo
+
+        else:
+            print("Failed to receive canvas data. Status code:", response.status_code)
+
+    except Exception as e:
+        print("Error:", e)
+
+    # Schedule the next update
+    self.after(1000, self.update_canvas)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
