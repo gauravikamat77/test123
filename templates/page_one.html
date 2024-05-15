@@ -4,12 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Processed Image</title>
+    <style>
+        body {
+            position: relative; /* Set position to relative for absolute positioning of button */
+            display: flex;
+            justify-content: center; /* Center content horizontally */
+            align-items: flex-start; /* Align content at the top */
+            height: 100vh; /* Make body full height of viewport */
+            margin: 0; /* Remove default margin */
+        }
+        #imageContainer {
+            position: absolute; /* Position the container absolutely */
+            top: 0; /* Place it at the top */
+            left: 0; /* Place it at the left */
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Stack items vertically */
+            align-items: flex-start; /* Align items at the top */
+        }
+        #originalImageContainer {
+            margin-bottom: 20px; /* Add margin between images */
+            margin-left: 80px; /* Move the original image slightly to the right */
+            margin-top: 40px; /* Move the original image slightly down */
+            border: 2px solid black; /* Add a border to the original image */
+            padding: 5px; /* Add padding inside the border */
+        }
+        #processedCanvas {
+            border: 2px solid black; /* Add a border for visualization */
+            margin-top: 160px; /* Add more margin at the top */
+        }
+        #imageContainer1 {
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Stack items vertically */
+            align-items: flex-start; /* Align items at the top */
+        }
+        #backButton {
+            position: absolute; /* Position the button absolutely */
+            top: 10px; /* Place it 10px from the top */
+            right: 10px; /* Place it 10px from the right */
+            padding: 10px 20px; /* Increase padding for larger button */
+            font-size: 16px; /* Increase font size for larger button */
+            background-color: #007bff ;
+            color: white;
+        }
+        #brushSizeContainer {
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Align items vertically */
+            margin-left: 80px; /* Adjust margin to align with the original image */
+        }
+        #brushSizeSlider {
+            width: 200px; /* Set width of the slider */
+        }
+        #brushSizeValue {
+            margin-left: 10px; /* Add some margin between the slider and its value */
+        }
+        .brushOptions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 80px; /* Adjust margin to align with the original image */
+        }
+        .brushOption {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .brushOption input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #000;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .brushOption input[type="radio"]:checked {
+            background-color: #000;
+        }
+        #submitButton {
+            position: absolute; /* Position the button absolutely */
+            bottom: 10px; /* Place it 10px from the bottom */
+            right: 10px; /* Place it 10px from the right */
+            padding: 10px 20px; /* Increase padding for larger button */
+            font-size: 16px; /* Increase font size for larger button */
+            background-color: #007bff ;
+            color: white;
+        }
+
+        #applybutton {
+            position: absolute; /* Position the button absolutely */
+            top: 550px; /* Place it 10px from the bottom */
+            left: 10px; /* Place it 10px from the right */
+            padding: 10px 20px; /* Increase padding for larger button */
+            font-size: 16px; /* Increase font size for larger button */
+            background-color: #007bff ;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <h1>Processed Image</h1>
-    <div id="processedImageContainer"></div>
+    <div id="imageContainer">
+        <div id="originalImageContainer">
+            <!-- This is where the original image will be displayed -->
+        </div>
+        <div id="brushSizeContainer">
+            <input type="range" min="1" max="100" value="10" id="brushSizeSlider"> <!-- Slider for brush size -->
+            <span id="brushSizeValue">10</span> <!-- Display the current value of the slider -->
+        </div>
+        <form id="brushForm" action="/process_with_brush" method="POST">
+            <div class="brushOptions">
+                <div class="brushOption">
+                    <input type="radio" id="round_brush" name="brush" value="round_brush" checked>
+                    <label for="round_brush">Round Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="slash_brush" name="brush" value="slash_brush">
+                    <label for="slash_brush">Slash Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="brush3" name="brush" value="ubrush">
+                    <label for="brush3">Up Fan Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="brush4" name="brush" value="dbrush">
+                    <label for="brush4">Down Fan Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="brush5" name="brush" value="lbrush">
+                    <label for="brush5">Left Fan Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="brush6" name="brush" value="rbrush">
+                    <label for="brush6">Right Fan Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="brush7" name="brush" value="sbrush">
+                    <label for="brush7">Smudge Brush</label>
+                </div>
+                <div class="brushOption">
+                    <input type="radio" id="brush8" name="brush" value="eraser">
+                    <label for="brush8">Eraser</label>
+                </div>
+            </div>
+            <button id="applybutton" type="submit">Apply</button>
+        </form>
+    </div>
 
-    <button onclick="goBack()">Back</button>
+    <div id="imageContainer1">
+        <canvas id="processedCanvas" width="400" height="400"></canvas> <!-- Canvas for processed image -->
+    </div>
+
+    <button id="backButton" onclick="goBack()">Back</button>
+
+    <input type="submit" value="Submit" id="submitButton">
 
     <script>
         function goBack() {
@@ -21,10 +167,31 @@
             const params = new URLSearchParams(window.location.search);
             const filename = params.get('filename');
 
-            // Create an image element and set its source to the processed image URL
-            var imgElement = document.createElement('img');
-            imgElement.src = '/static/processed/' + 'processed_'+filename; // Change the path as per your directory structure
-            document.getElementById('processedImageContainer').appendChild(imgElement);
+            var canvas = document.getElementById('processedCanvas');
+            var ctx = canvas.getContext('2d');
+
+            // Create an image element for the original image
+            var originalImgElement = new Image();
+            originalImgElement.src = '/static/uploads/' + filename; // Change the path as per your directory structure
+            document.getElementById('originalImageContainer').appendChild(originalImgElement);
+
+            // Create an image element for the processed image
+            var processedImgElement = new Image();
+            processedImgElement.src = '/static/processed/' + 'processed_' + filename; // Change the path as per your directory structure
+
+            // Draw the processed image onto the canvas
+            processedImgElement.onload = function() {
+                ctx.drawImage(processedImgElement, 0, 0, canvas.width, canvas.height); // Draw the image onto the canvas
+            };
+
+            // Get the slider and its value display element
+            var slider = document.getElementById('brushSizeSlider');
+            var valueDisplay = document.getElementById('brushSizeValue');
+
+            // Update the value display when the slider value changes
+            slider.addEventListener('input', function() {
+                valueDisplay.textContent = this.value;
+            });
         };
     </script>
 </body>

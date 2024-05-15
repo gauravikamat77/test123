@@ -76,7 +76,7 @@ def select_and_process_image():
             binary_inverse_pil = Image.fromarray(binary_inverse)
 
             # Resize the processed image to match the dimensions of the selected image
-            binary_inverse_pil = binary_inverse_pil.resize((width, height))
+            binary_inverse_pil = binary_inverse_pil.resize((500, 400))
 
             # Convert processed image to PIL format
             pil_img = binary_inverse_pil
@@ -106,79 +106,40 @@ def page_one():
     # Add logic for Page One
     return render_template('page_one.html')
 
+@app.route('/process_with_brush', methods=['POST'])
+def process_with_brush():
+        # Get the selected brush option from the request
+        brush_option = request.form.get('brush')
 
-# from flask import send_from_directory
-
-# @app.route('/process_image', methods=['POST'])
-# def process_image():
-#     try:
-#         if 'image_file' not in request.files:
-#             return jsonify({'error': 'No file part'})
-        
-#         file = request.files['image_file']
-#         if file.filename == '':
-#             return jsonify({'error': 'No selected file'})
-        
-#         if file and allowed_file(file.filename):
-#             filename = secure_filename(file.filename)
-#             input_filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            
-#             # Load the selected image
-#             img = cv2.imread(input_filepath)
-#             if img is None:
-#                 return jsonify({'error': 'Failed to load image'})
-            
-#             height, width, _ = img.shape
-            
-#             # Convert to Grayscale
-#             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-#          # Gaussian Blur
-#             img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
-
-#     # Canny Edge Detection
-#             img_edge = cv2.Canny(img_gray, 100, 200)
-
-#     # Dilate Edges
-#             kernel_dilate = np.ones((1, 1), np.uint8)
-#             thick = cv2.dilate(img_edge, kernel_dilate, iterations=1)
-
-#     # Sharpening
-#             kernel_sharpen = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-#             sharpened = cv2.filter2D(thick, -1, kernel_sharpen)
-
-#     # Thresholding
-#             threshold_value = 120
-#             _, binary_inverse = cv2.threshold(sharpened, threshold_value, 255, cv2.THRESH_BINARY_INV)
-#             binary_inverse_pil = Image.fromarray(binary_inverse)
-
-#     # Resize the processed image to match the dimensions of the selected image
-#             binary_inverse_pil = binary_inverse_pil.resize((width, height))
-  
-#             # Save the processed image
-#             processed_filename = f"processed_{filename}"
-#             processed_filepath = os.path.join(app.config['PROCESSED_FOLDER'], processed_filename)
-#             pil_img.save(processed_filepath)
-            
-#             # Convert processed image to PIL format
-#             pil_img = Image.fromarray(binary_inverse_pil)
-            
-#             # Convert PIL image to base64
-#             buffered = io.BytesIO()
-#             pil_img.save(buffered, format="JPEG")
-#             processed_image_data = base64.b64encode(buffered.getvalue()).decode('utf-8')
-    
-#             # Modify the return statement to include the processed image filename
-#             return jsonify({'success': 'Image processed successfully!', 'data': {'processed_image_data': processed_image_data, 'processed_filename': processed_filename}})
-        
-#     except Exception as e:
-#         print("Error:", e)
-#         return jsonify({'error': 'An error occurred during image processing'})
-
-# @app.route('/processed_images/<filename>')
-# def processed_image(filename):
-#     return send_from_directory(app.config['PROCESSED_FOLDER'], filename)
-
+        # Apply the selected brush option
+        if brush_option == 'round_brush':
+            # Apply round brush logic
+            pass
+        elif brush_option == 'slash_brush':
+            # Apply slash brush logic
+            pass
+        elif brush_option == 'ubrush':
+            # Apply up fan brush logic
+            pass
+        elif brush_option == 'dbrush':
+            # Apply down fan brush logic
+            pass
+        elif brush_option == 'lbrush':
+            # Apply left fan brush logic
+            pass
+        elif brush_option == 'rbrush':
+            # Apply right fan brush logic
+            pass
+        elif brush_option == 'sbrush':
+            # Apply smudge brush logic
+            pass
+        elif brush_option == 'eraser':
+            # Apply eraser logic
+            pass
+        else:
+            # Handle invalid brush option
+            pass
+        return jsonify({'error': 'Invalid file format'})
 
 if __name__ == '__main__':
     app.run(debug=True)
