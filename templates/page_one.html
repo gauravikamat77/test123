@@ -163,7 +163,7 @@
     </div>
 
     <div id="imageContainer1">
-        <canvas id="processedCanvas" width="500" height="400"></canvas> <!-- Canvas for processed image -->
+        <canvas id="processedCanvas" width="450" height="400"></canvas> <!-- Canvas for processed image -->
     </div>
 
     <button id="backButton" onclick="goBack()">Back</button>
@@ -186,7 +186,7 @@
             // Create an image element for the original image
             var originalImgElement = new Image();
             originalImgElement.src = '/static/uploads/' + filename; // Change the path as per your directory structure
-            originalImgElement.width = 300; // Set the width of the image
+            originalImgElement.width = 200; // Set the width of the image
             originalImgElement.height = 200; // Set the height of the image
             document.getElementById('originalImageContainer').appendChild(originalImgElement);
 
