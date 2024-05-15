@@ -25,8 +25,19 @@
             margin-bottom: 20px; /* Add margin between images */
             margin-left: 80px; /* Move the original image slightly to the right */
             margin-top: 40px; /* Move the original image slightly down */
-            border: 2px solid black; /* Add a border to the original image */
+            
             padding: 5px; /* Add padding inside the border */
+            height:300px;
+            width:400px;
+            overflow:hidden;
+            
+        }
+
+        #originalImageContainer img {
+            max-width: 100%; /* Ensure the image doesn't exceed the container width */
+            max-height: 100%; /* Ensure the image doesn't exceed the container height */
+            border: 2px solid black; /* Add a border to the original image */
+            display: block; /* Ensure the image is a block element */
         }
         #processedCanvas {
             border: 2px solid black; /* Add a border for visualization */
