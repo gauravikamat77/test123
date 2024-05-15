@@ -59,16 +59,17 @@
             display: flex; /* Use flexbox for layout */
             align-items: center; /* Align items vertically */
             margin-left: 80px; /* Adjust margin to align with the original image */
-            margin-top: -60px; /* Move the slider up */
+            margin-top: -85px; /* Move the slider up */
         }
         
         #brushSizeValue {
             margin-left: 10px; /* Add some margin between the slider and its value */
-           
         }
+        
         #brushSizeSlider {
             width: 200px; /* Set width of the slider */
         }
+        
         .brushOptions {
             display: flex;
             flex-direction: column;
@@ -78,7 +79,7 @@
         .brushOption {
             display: flex;
             align-items: center;
-            margin-top: 5px;
+            margin-top: 10px;
         }
         .brushOption input[type="radio"] {
             appearance: none;
@@ -185,6 +186,8 @@
             // Create an image element for the original image
             var originalImgElement = new Image();
             originalImgElement.src = '/static/uploads/' + filename; // Change the path as per your directory structure
+            originalImgElement.width = 300; // Set the width of the image
+            originalImgElement.height = 200; // Set the height of the image
             document.getElementById('originalImageContainer').appendChild(originalImgElement);
 
             // Create an image element for the processed image
