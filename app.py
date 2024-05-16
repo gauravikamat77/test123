@@ -11,6 +11,7 @@ from PIL import ImageTk, Image
 import base64
 import requests
 from flask_socketio import SocketIO, emit
+from sklearn.cluster import KMeans
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -34,17 +35,16 @@ canvas = tk.Canvas(root, width=500, height=400)
 canvas.pack()
 
 brush_colour = "black"
+hex_codes = []
+def rgb_to_hex(rgb_array):
+    # Convert each RGB value to a hex string
+    # Format the values as two-digit hex strings and combine them
+    hex_code = "#{:02X}{:02X}{:02X}".format(rgb_array[0], rgb_array[1], rgb_array[2])
+    return hex_code
 
 # Function to check if file extension is allowed
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def draw_brush(event, brush_width, brush_type2):
-    x1 = event.x - 1
-    y1 = event.y - 1
-    x2 = event.x + 1
-    y2 = event.y + 1
-    canvas.create_line(x1, y1, x2, y2, fill=brush_colour, width=brush_width, capstyle=brush_type2, smooth=True)
 
 
 @app.route('/')
@@ -136,9 +136,41 @@ def select_and_process_image():
             buffered = io.BytesIO()
             pil_img.save(buffered, format="JPEG")
             processed_image_data = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            
+            # Perform K-Means clustering to identify dominant colors
+            iimg = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            c_img = iimg.copy()
+            c_img = np.reshape(c_img, (-1,3))
+            
+            kmeans = KMeans(n_clusters=12,random_state=2)
+            kmeans.fit_predict(c_img)
+            centers = kmeans.cluster_centers_.astype(int)
+            per = np.array(np.unique(kmeans.labels_, return_counts=True)[1], dtype=np.float32)
+            per = per/c_img.shape[0]
+            dom = [ [per[ix], centers[ix]] for ix in range(kmeans.n_clusters) ]
+            DOM = sorted(dom, reverse=True)
+            color_p = np.zeros((50,500,3)).astype(int)
 
-            # Modify the return statement to include the processed image filename
-            return jsonify({'success': 'Image processed successfully!', 'data': {'processed_image_data': processed_image_data, 'processed_filename': processed_filename}})
+            start = 0
+            for ix in range(kmeans.n_clusters):
+                width = int( (DOM[ix][0])*color_p.shape[1] )
+                end = start+width
+                color_p[:,start:end, :] = DOM[ix][1]
+                start = end
+            
+            for ix in range(c_img.shape[0]):
+                c_img[ix] = centers[kmeans.labels_[ix]]
+            c_img = np.reshape(c_img, (img.shape[0], img.shape[1], 3))
+            
+            color_p_flattened = color_p.reshape(-1, 3)
+            unique_colors = np.unique(color_p_flattened, axis=0)
+            hex_codes = [rgb_to_hex(color) for color in unique_colors]
+            print("Hex Codes:", hex_codes)
+            # Modify the return statement to include the processed image filename and hex codes
+            return jsonify({'success': 'Image processed successfully!', 
+                            'data': {'processed_image_data': processed_image_data, 
+                                     'processed_filename': processed_filename,
+                                     'hex_codes': hex_codes}})
         
     except Exception as e:
         print("Error:", e)
@@ -149,8 +181,15 @@ def select_and_process_image():
    
 @app.route('/page_one')
 def page_one():
-    # Add logic for Page One
-    return render_template('page_one.html')
+    try:
+        global hex_codes  # Access the global hex_codes variable
+        # Pass the hex codes array as a context variable to the template
+        print("Hex Codes:", hex_codes)
+        return render_template('page_one.html', hex_codes=hex_codes)
+        
+    except Exception as e:
+        print("Error:", e)
+
 
 # Flask route to process images with the selected brush
 @app.route('/process_with_brush', methods=['POST'])
@@ -160,9 +199,8 @@ def process_with_brush(self):
         brush_option = request.form.get('brush')
         # Apply the selected brush option
         if brush_option == 'round_brush':
-            draw_brush(self)
         # Implement logic for other brush options as needed
-        else:
+        
             # Handle invalid brush option
             return jsonify({'error': 'Invalid brush option'})
     

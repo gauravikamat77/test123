@@ -18,6 +18,7 @@
         // Define a global variable to store the response data
         var responseData;
         var name;
+        var hexCodes;
         document.getElementById('imageForm').addEventListener('submit', function(event) {
             event.preventDefault();
             console.log("Form submitted");
@@ -45,6 +46,9 @@
                     var container = document.getElementById('selectedImageContainer');
                     container.innerHTML = '';
                     container.appendChild(imgElement);
+                    if (data.data && data.data.hex_codes) {
+                        hexCodes = data.data.hex_codes;                      
+                    }
                 }
             })
             .catch(error => {
@@ -54,9 +58,14 @@
 
         // Add click event listener to the next button
         document.getElementById('nextButton').addEventListener('click', function() {
-            // Redirect to the next page with the filename as a query parameter
-                window.location.href = '/page_one?filename=' + encodeURIComponent(name);
+            // Get the filename and hex codes
+            const filename = encodeURIComponent(name);
+            const hexCodes2 = encodeURIComponent(JSON.stringify(hexCodes)); // Convert hex codes array to a JSON string
+            
+            // Redirect to the next page with both filename and hex codes as query parameters
+            window.location.href = '/page_one?filename=' + filename + '&hex_codes=' + hexCodes2;
         });
+        
     </script>
 </body>
 </html>

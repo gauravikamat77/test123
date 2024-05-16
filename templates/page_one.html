@@ -112,6 +112,23 @@
             background-color: #007bff ;
             color: white;
         }
+
+        .palette {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100px;
+            margin: 220px 0 0 90px; /* Adjust margin to move the palette down and to the right */
+        }
+        
+        .color {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #000;
+            border-radius: 3px;
+        }
+        
     </style>
 </head>
 <body>
@@ -166,17 +183,20 @@
     <div id="imageContainer1">
         <canvas id="processedCanvas" width="450" height="400"></canvas> <!-- Canvas for processed image -->
     </div>
+    <div class="palette" id="colorPalette">
 
+    </div>
     <button id="backButton" onclick="goBack()">Back</button>
 
     <input type="submit" value="Submit" id="submitButton">
-
+      
     <script>
         function goBack() {
             window.history.back(); // Go back to the previous page
         }
-
+        
         window.onload = function() {
+            
             // Get the filename of the selected image from the URL query parameters
             const params = new URLSearchParams(window.location.search);
             const filename = params.get('filename');
@@ -209,7 +229,31 @@
                 valueDisplay.textContent = this.value;
             });
         };
+        
+        // Get the filename from the URL query parameters
+        const params = new URLSearchParams(window.location.search);
+        const filename = params.get('filename');
 
+// Get the hex codes from the URL query parameters and parse them into an array
+        const hexCodesString = params.get('hex_codes');
+        const hexCodes = JSON.parse(decodeURIComponent(hexCodesString));
+
+// Now you can use the filename and hex codes as needed
+        console.log('Filename:', filename);
+        console.log('Hex Codes:', hexCodes);
+ // Color palette functionality
+       var colors = hexCodes;
+       var palette = document.getElementById('colorPalette');
+
+        colors.forEach(function(col) {
+              var colorDiv = document.createElement('div');
+              colorDiv.className = 'color';
+              colorDiv.style.backgroundColor = col;
+              colorDiv.onclick = function() {
+              color = col;
+            };
+               palette.appendChild(colorDiv);
+           });
 
         function applyBrush() {
             var canvasData = {}; // Create an empty object to store canvas data
