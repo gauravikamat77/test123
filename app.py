@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, render_template, jsonify
 from werkzeug.utils import secure_filename
 import cv2
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 import base64
 import io
@@ -189,103 +189,6 @@ def page_one():
         
     except Exception as e:
         print("Error:", e)
-
-
-# Flask route to process images with the selected brush
-@app.route('/process_with_brush', methods=['POST'])
-def process_with_brush(self):
-    try:
-        # Get the selected brush option from the request
-        brush_option = request.form.get('brush')
-        # Apply the selected brush option
-        if brush_option == 'round_brush':
-        # Implement logic for other brush options as needed
-        
-            # Handle invalid brush option
-            return jsonify({'error': 'Invalid brush option'})
-    
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({'error': 'An error occurred during image processing'})
-
-        
-        # elif brush_option == 'slash_brush':
-        #     # Apply slash brush logic
-        #     pass
-        # elif brush_option == 'ubrush':
-        #     # Apply up fan brush logic
-        #     pass
-        # elif brush_option == 'dbrush':
-        #     # Apply down fan brush logic
-        #     pass
-        # elif brush_option == 'lbrush':
-        #     # Apply left fan brush logic
-        #     pass
-        # elif brush_option == 'rbrush':
-        #     # Apply right fan brush logic
-        #     pass
-        # elif brush_option == 'sbrush':
-        #     # Apply smudge brush logic
-        #     pass
-        # elif brush_option == 'eraser':
-        #     # Apply eraser logic
-        #     pass
-        # else:
-        #     # Handle invalid brush option
-        #     pass
-        # return jsonify({'error': 'Invalid file format'})
-
-
-@app.route('/receive_canvas_data', methods=['POST'])
-def receive_canvas_data():
-    # Get canvas data from the client request
-    canvas_data = request.json.get('canvasData')
-    
-    # Return the canvas data along with the success status
-    return jsonify({'status': 'success', 'canvasData': canvas_data})
-
-
-@socketio.on('update_canvas')
-def update_canvas(self):
-    try:
-        data = {'canvasData': 'your_canvas_data_here'}
-
-       # Set the content type header to JSON
-        headers = {'Content-Type': 'application/json'}
-
-# Make the POST request with JSON data and headers
-        response = requests.post('http://localhost:5000/process_with_brush', json=data, headers=headers)
-
-# Check the response status
-        if response.status_code == 200:
-          print("Request successful")
-          print(response.json())
-        else:
-          print("Error:", response.status_code)
-        # Get canvas data from the server
-        response = requests.post('http://localhost:5000/receive_canvas_data')
-        
-        # Check if the request was successful
-        if response.status_code == 200:
-            data = response.json()
-
-            # Decode base64 canvas data to an image
-            canvas_data = base64.b64decode(data.get('canvasData', ''))
-            img = Image.open(io.BytesIO(canvas_data))
-            photo = ImageTk.PhotoImage(img)
-
-            # Update Tkinter canvas with the received image
-            self.canvas.create_image(0, 0, anchor=tk.NW, image=photo)
-            self.photo = photo
-
-        else:
-            print("Failed to receive canvas data. Status code:", response.status_code)
-
-    except Exception as e:
-        print("Error:", e)
-
-    # Schedule the next update
-    self.after(1000, self.update_canvas)
 
 
 
